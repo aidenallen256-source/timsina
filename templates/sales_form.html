@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Accounting System{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart"></i> {{ title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="saleForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="customer_id" class="form-label">Customer</label>
+                                <select name="customer_id" id="customer_id" class="form-select">
+                                    <option value="">Walk-in Customer</option>
+                                    {% for customer in customers %}
+                                        <option value="{{ customer.id }}">{{ customer.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="discount" class="form-label">Discount Amount</label>
+                                <input type="number" name="discount" id="discount" class="form-control" step="0.01" min="0" value="0">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="vat_enabled" id="vat_enabled">
+                                    <label class="form-check-label" for="vat_enabled">
+                                        Enable VAT (13%)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="excise_enabled" id="excise_enabled">
+                                    <label class="form-check-label" for="excise_enabled">
+                                        Enable Excise Tax
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>Sale Items</h6>
+                                <button type="button" class="btn btn-sm btn-success" id="addItemBtn">
+                                    <i class="fas fa-plus"></i> Add Item
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="itemsContainer">
+                                    <!-- Items will be added here dynamically -->
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-8"></div>
+                                    <div class="col-md-4">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Subtotal:</strong></td>
+                                                <td class="text-end"><span id="subtotal">$0.00</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Discount:</strong></td>
+                                                <td class="text-end"><span id="discountAmount">$0.00</span></td>
+                                            </tr>
+                                            <tr class="table-primary">
+                                                <td><strong>Total:</strong></td>
+                                                <td class="text-end"><strong><span id="total">$0.00</span></strong></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Submit Sale
+                            </button>
+                            <a href="{{ url_for('sales') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Item Row Template -->
+<template id="itemRowTemplate">
+    <div class="row mb-2 item-row">
+        <div class="col-md-4">
+            <select name="item_id[]" class="form-select item-select" required>
+                <option value="">Select Item</option>
+                {% for item in items %}
+                    <option value="{{ item.id }}" data-price="{{ item.sp }}" data-stock="{{ item.current_quantity }}">
+                        {{ item.product }} (Stock: {{ item.current_quantity }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="quantity[]" class="form-control quantity-input" placeholder="Quantity" step="0.01" min="0.01" required>
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="unit_price[]" class="form-control price-input" placeholder="Unit Price" step="0.01" min="0" required>
+        </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control total-input" placeholder="Total" readonly>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm remove-item">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itemsContainer = document.getElementById('itemsContainer');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const discountInput = document.getElementById('discount');
+
+    // Add first item row
+    addItemRow();
+
+    addItemBtn.addEventListener('click', addItemRow);
+    discountInput.addEventListener('input', calculateTotals);
+
+    function addItemRow() {
+        const template = document.getElementById('itemRowTemplate');
+        const clone = template.content.cloneNode(true);
+        
+        // Add event listeners to the cloned elements
+        const itemSelect = clone.querySelector('.item-select');
+        const quantityInput = clone.querySelector('.quantity-input');
+        const priceInput = clone.querySelector('.price-input');
+        const removeBtn = clone.querySelector('.remove-item');
+
+        itemSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                priceInput.value = selectedOption.dataset.price;
+                calculateRowTotal(this.closest('.item-row'));
+            }
+        });
+
+        quantityInput.addEventListener('input', function() {
+            calculateRowTotal(this.closest('.item-row'));
+        });
+
+        priceInput.addEventListener('input', function() {
+            calculateRowTotal(this.closest('.item-row'));
+        });
+
+        removeBtn.addEventListener('click', function() {
+            if (itemsContainer.children.length > 1) {
+                this.closest('.item-row').remove();
+                calculateTotals();
+            }
+        });
+
+        itemsContainer.appendChild(clone);
+    }
+
+    function calculateRowTotal(row) {
+        const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const total = quantity * price;
+        
+        row.querySelector('.total-input').value = total.toFixed(2);
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        let subtotal = 0;
+        
+        document.querySelectorAll('.total-input').forEach(input => {
+            subtotal += parseFloat(input.value) || 0;
+        });
+
+        const discount = parseFloat(discountInput.value) || 0;
+        const total = subtotal - discount;
+
+        document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+        document.getElementById('discountAmount').textContent = '$' + discount.toFixed(2);
+        document.getElementById('total').textContent = '$' + total.toFixed(2);
+    }
+
+    // Add form validation
+    document.getElementById('saleForm').addEventListener('submit', function(e) {
+        const itemRows = document.querySelectorAll('.item-row');
+        let hasValidItems = false;
+        
+        itemRows.forEach(row => {
+            const itemSelect = row.querySelector('.item-select');
+            const quantity = row.querySelector('.quantity-input');
+            const price = row.querySelector('.price-input');
+            
+            if (itemSelect.value && quantity.value && price.value) {
+                hasValidItems = true;
+            }
+        });
+        
+        if (!hasValidItems) {
+            e.preventDefault();
+            alert('Please add at least one valid item to the sale.');
+            return false;
+        }
+        
+        // Additional validation
+        let isValid = true;
+        itemRows.forEach(row => {
+            const itemSelect = row.querySelector('.item-select');
+            const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            
+            if (itemSelect.value && (quantity <= 0 || price <= 0)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please ensure all quantities and prices are greater than 0.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

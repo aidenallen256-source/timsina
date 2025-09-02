@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if sale %}Sale Invoice - {{ sale.invoice_number }}{% else %}Purchase Invoice - {{ purchase.invoice_number }}{% endif %} - Accounting System
+{% endblock %}
+
+{% block page_title %}
+{% if sale %}Sale Invoice{% else %}Purchase Invoice{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Invoice Header -->
+                    <div class="invoice-header mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h2 class="text-primary">
+                                    <i class="fas fa-calculator"></i> Accounting System
+                                </h2>
+                                <p class="text-muted">Professional Accounting Solution</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h3 class="text-primary">
+                                    {% if sale %}SALES INVOICE{% else %}PURCHASE INVOICE{% endif %}
+                                </h3>
+                                <p class="mb-0">
+                                    <strong>Invoice #:</strong> 
+                                    {% if sale %}{{ sale.invoice_number }}{% else %}{{ purchase.invoice_number }}{% endif %}
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Date:</strong> 
+                                    {% if sale %}{{ sale.sale_date.strftime('%B %d, %Y') }}{% else %}{{ purchase.purchase_date.strftime('%B %d, %Y') }}{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Invoice Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>{% if sale %}Bill To:{% else %}Purchase From:{% endif %}</h5>
+                            {% if sale %}
+                                {% if sale.customer %}
+                                    <address>
+                                        <strong>{{ sale.customer.name }}</strong><br>
+                                        {% if sale.customer.email %}{{ sale.customer.email }}<br>{% endif %}
+                                        {% if sale.customer.phone %}{{ sale.customer.phone }}<br>{% endif %}
+                                        {% if sale.customer.address %}{{ sale.customer.address }}{% endif %}
+                                    </address>
+                                {% else %}
+                                    <address>
+                                        <strong>Walk-in Customer</strong>
+                                    </address>
+                                {% endif %}
+                            {% else %}
+                                {% if purchase.vendor %}
+                                    <address>
+                                        <strong>{{ purchase.vendor.name }}</strong><br>
+                                        {% if purchase.vendor.email %}{{ purchase.vendor.email }}<br>{% endif %}
+                                        {% if purchase.vendor.phone %}{{ purchase.vendor.phone }}<br>{% endif %}
+                                        {% if purchase.vendor.address %}{{ purchase.vendor.address }}{% endif %}
+                                        {% if purchase.vendor.tax_number %}<br><strong>Tax #:</strong> {{ purchase.vendor.tax_number }}{% endif %}
+                                    </address>
+                                {% else %}
+                                    <address>
+                                        <strong>Unknown Vendor</strong>
+                                    </address>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Additional invoice info can go here -->
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Item Description</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if sale %}
+                                    {% for item in sale.items %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <strong>{{ item.item.product }}</strong><br>
+                                            <small class="text-muted">SN: {{ item.item.sn }}</small>
+                                        </td>
+                                        <td class="text-center">{{ item.quantity }} {{ item.item.uom }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.unit_price) }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.total_price) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for item in purchase.items %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <strong>{{ item.item.product }}</strong><br>
+                                            <small class="text-muted">SN: {{ item.item.sn }}</small>
+                                        </td>
+                                        <td class="text-center">{{ item.quantity }} {{ item.item.uom }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.unit_price) }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(item.total_price) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Invoice Totals -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            {% if sale and sale.notes %}
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>Notes</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ sale.notes }}
+                                    </div>
+                                </div>
+                            {% elif purchase and purchase.notes %}
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>Notes</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ purchase.notes }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Subtotal:</strong></td>
+                                    <td class="text-end">
+                                        ${% if sale %}{{ "%.2f"|format(sale.total_amount) }}{% else %}{{ "%.2f"|format(purchase.total_amount) }}{% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Discount:</strong></td>
+                                    <td class="text-end">
+                                        ${% if sale %}{{ "%.2f"|format(sale.discount) }}{% else %}{{ "%.2f"|format(purchase.discount) }}{% endif %}
+                                    </td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td><strong>Total Amount:</strong></td>
+                                    <td class="text-end">
+                                        <strong>
+                                            ${% if sale %}{{ "%.2f"|format(sale.final_amount) }}{% else %}{{ "%.2f"|format(purchase.final_amount) }}{% endif %}
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Footer -->
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Thank you for your business!</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4 no-print">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Print Invoice
+                        </button>
+                        <a href="{% if sale %}{{ url_for('sales') }}{% else %}{{ url_for('purchases') }}{% endif %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .sidebar, .main-header, .btn {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+}
+</style>
+{% endblock %}

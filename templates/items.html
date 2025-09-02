@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Items - Accounting System{% endblock %}
+{% block page_title %}Item Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Inventory Items</h4>
+        <div>
+            <a href="{{ url_for('import_items') }}" class="btn btn-success me-2">
+                <i class="fas fa-file-excel"></i> Import Excel
+            </a>
+            <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Item
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>SN</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Cost Price</th>
+                                <th>Wholesale</th>
+                                <th>Selling Price</th>
+                                <th>Current Stock</th>
+                                <th>UOM</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr {% if item.current_quantity < 10 %}class="table-warning"{% endif %}>
+                                <td><strong>{{ item.sn }}</strong></td>
+                                <td>{{ item.product }}</td>
+                                <td>{{ item.category or '-' }}</td>
+                                <td>{{ item.brand or '-' }}</td>
+                                <td>${{ "%.2f"|format(item.cp) }}</td>
+                                <td>${{ "%.2f"|format(item.wholesale) }}</td>
+                                <td><strong>${{ "%.2f"|format(item.sp) }}</strong></td>
+                                <td>
+                                    <span class="{% if item.current_quantity < 10 %}text-warning{% endif %}">
+                                        {{ item.current_quantity }}
+                                    </span>
+                                </td>
+                                <td>{{ item.uom }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('edit_item', id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="{{ url_for('delete_item', id=item.id) }}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this item?')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No items found</h5>
+                    <p class="text-muted">Start by adding items to your inventory or import from Excel.</p>
+                    <div>
+                        <a href="{{ url_for('add_item') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus"></i> Add Item
+                        </a>
+                        <a href="{{ url_for('import_items') }}" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Import Excel
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

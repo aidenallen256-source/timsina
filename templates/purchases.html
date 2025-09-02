@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Purchases - Accounting System{% endblock %}
+{% block page_title %}Purchase Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Purchase Transactions</h4>
+        <a href="{{ url_for('add_purchase') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Purchase
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if purchases %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th>Vendor</th>
+                                <th>Total Amount</th>
+                                <th>Discount</th>
+                                <th>Final Amount</th>
+                                <th>Purchase Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for purchase in purchases %}
+                            <tr>
+                                <td><strong>{{ purchase.invoice_number }}</strong></td>
+                                <td>{{ purchase.vendor.name if purchase.vendor else 'Unknown Vendor' }}</td>
+                                <td>${{ "%.2f"|format(purchase.total_amount) }}</td>
+                                <td>${{ "%.2f"|format(purchase.discount) }}</td>
+                                <td><strong>${{ "%.2f"|format(purchase.final_amount) }}</strong></td>
+                                <td>{{ purchase.purchase_date.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('view_purchase', id=purchase.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('delete_purchase', id=purchase.id) }}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this purchase?')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No purchases found</h5>
+                    <p class="text-muted">Start by creating your first purchase transaction.</p>
+                    <a href="{{ url_for('add_purchase') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create First Purchase
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

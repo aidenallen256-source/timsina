@@ -1,0 +1,69 @@
+Update existing project: modify current repo (do not create a new one). Add the following features and business logic exactly as described. Use SQLite + Express backend and React + Tailwind frontend. Commit changes and keep clear routes/files modified.
+
+1) VAT & Excise toggles
+
+Add visible toggles labeled "VAT (13%)" and "Excise" on both Purchases and Sales forms and on each line item (able to toggle per-line and global).
+
+When VAT toggle is ON apply 13% to taxable amount. When OFF, VAT = 0. Excise only applies when its toggle is ON. Show VAT and Excise as separate lines in invoice calculation.
+
+2) Create-item-on-purchase (on-the-fly)
+
+On the Purchases input form, if user types a product name not in Items list, show an option “Create item” (modal) to add minimal item fields (product, category, sp, cp, uom, opening_quantity) and then proceed with the purchase.
+
+If item exists, update its quantity on purchase; if not, create it and set quantity from purchase.
+
+3) Purchase payment type & Purchase Ledger
+
+Purchases form must include: date, vendor, invoice_no, items[] (product, qty, rate), discount, VAT toggle, Excise toggle, payment_type (credit/debit), payment_account (Bank / Cash / Purchase Account) and purchase_account selection.
+
+Business logic: subtotal → apply discount → taxable_amount → VAT(13%) + Excise → total. Round to 2 decimals.
+
+On Submit: create purchase record, update items quantity, update vendor balance if payment_type = credit (add total to vendor balance).
+
+Create a Purchase Ledger entry for every purchase with columns: date | particular | invoice_no | amount.
+
+particular should auto-fill as:
+
+if credit: Purchase Account (or the chosen purchase_account name)
+
+if debit: To <payment_account> (e.g., To Bank Account or To Cash Account) — use the payment_account input value.
+
+Invoice_no must be taken from the purchase input. If none provided, auto-generate unique invoice_no.
+
+4) Sales + Sales Ledger
+
+Sales form must include date, customer, bill_no, items[] (product, qty, rate), discount, VAT toggle, Excise toggle, payment_type, payment_account.
+
+On Submit: deduct stock (warn if insufficient; allow override), compute totals same as purchases, VAT 13% if toggled.
+
+Create Sales Ledger entries: date | particular | bill_no | amount.
+
+particular auto-fills from sales account (selectable) or customer name; bill_no is taken from sales input or auto-generated.
+
+5) Reports & Export
+
+Add Reports page: Sales report (date-range) with totals, VAT collected, Excise collected; Import history; Stock report (current qty, low-stock warnings); Vendor balances.
+
+Add CSV and PDF export buttons for ledgers and reports. PDF invoice generation optional but preferred (tax invoice format: sender, receiver, vat no, address, line items, taxes).
+
+6) API + DB
+
+Add/modify backend endpoints: /api/items, /api/items/import, /api/purchases, /api/sales, /api/vendors, /api/ledgers/purchase, /api/ledgers/sales, /api/reports/*. Validate inputs server-side.
+
+Update Item, Purchase, Sale, Vendor, Ledger models and migrations to support invoice_no/bill_no, vendor_balance, payment_account, VAT_exciseflags. Use SQLite file backend/database.sqlite.
+
+7) UI behavior & validations
+
+On purchase/sale forms show clear breakdown: subtotal, discount, taxable amount, VAT (13%), Excise, total.
+
+Mandatory fields: date, vendor/customer, at least one item, qty>0, rate>0. Unique constraint for invoice_no/bill_no.
+
+Add toggle in Settings to change default VAT rate (default 13%).
+
+8) Deliverables
+
+Commit changes with clear messages. Update README with new endpoints, how to run, and where to find Purchase Ledger, Sales Ledger, and Reports.
+
+List of modified files in commit message.
+
+Implement exactly — keep UI simple & modern (Swastik/Tigg/Karobar-inspired). Do not add any unrelated features.

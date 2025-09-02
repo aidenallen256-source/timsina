@@ -1,0 +1,15 @@
+flask
+flask_sqlalchemy
+flask_wtf
+wtforms
+flask_login
+flask_migrate
+openpyxl
+xlrd
+email_validator
+python-decouple
+werkzeug
+gunicorn
+pandas
+psycopg2-binary
+mysqlclient

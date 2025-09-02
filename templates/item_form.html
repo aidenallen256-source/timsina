@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Accounting System{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>
+                        <i class="fas fa-{% if is_import %}file-excel{% else %}box{% endif %}"></i> 
+                        {{ title }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if is_import %}
+                    <!-- Excel Import Form -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Excel Format Requirements:</h6>
+                        <p class="mb-0">The Excel file should have the following columns in order:</p>
+                        <strong>sn, product, category, brand, cp, wholesale, sp, uom, opening_quantity</strong>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.file.label(class="form-label") }}
+                            {{ form.file(class="form-control") }}
+                            {% if form.file.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.file.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Import Items
+                            </button>
+                            <a href="{{ url_for('items') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                    {% else %}
+                    <!-- Regular Item Form -->
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.sn.label(class="form-label") }}
+                                    {{ form.sn(class="form-control") }}
+                                    {% if form.sn.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.sn.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.product.label(class="form-label") }}
+                                    {{ form.product(class="form-control") }}
+                                    {% if form.product.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.product.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.category.label(class="form-label") }}
+                                    {{ form.category(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.brand.label(class="form-label") }}
+                                    {{ form.brand(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.cp.label(class="form-label") }}
+                                    {{ form.cp(class="form-control", step="0.01") }}
+                                    {% if form.cp.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.cp.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.wholesale.label(class="form-label") }}
+                                    {{ form.wholesale(class="form-control", step="0.01") }}
+                                    {% if form.wholesale.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.wholesale.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.sp.label(class="form-label") }}
+                                    {{ form.sp(class="form-control", step="0.01") }}
+                                    {% if form.sp.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.sp.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.uom.label(class="form-label") }}
+                                    {{ form.uom(class="form-control") }}
+                                    {% if form.uom.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.uom.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.opening_quantity.label(class="form-label") }}
+                                    {{ form.opening_quantity(class="form-control", step="0.01") }}
+                                    {% if form.opening_quantity.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.opening_quantity.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Item
+                            </button>
+                            <a href="{{ url_for('items') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Accounting System{% endblock %}
+{% block page_title %}Customer Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>Customers</h4>
+        <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Customer
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if customers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Balance</th>
+                                <th>Created Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers %}
+                            <tr>
+                                <td><strong>{{ customer.name }}</strong></td>
+                                <td>{{ customer.email or '-' }}</td>
+                                <td>{{ customer.phone or '-' }}</td>
+                                <td>{{ customer.address[:50] + '...' if customer.address and customer.address|length > 50 else customer.address or '-' }}</td>
+                                <td>${{ "%.2f"|format(customer.balance) }}</td>
+                                <td>{{ customer.created_at.strftime('%m/%d/%Y') }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('edit_customer', id=customer.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="{{ url_for('delete_customer', id=customer.id) }}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this customer?')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No customers found</h5>
+                    <p class="text-muted">Start by adding customers to your system.</p>
+                    <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add First Customer
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
